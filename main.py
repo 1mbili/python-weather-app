@@ -1,7 +1,7 @@
 import datetime
 import requests
 import string
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, jsonify, render_template, request, redirect, url_for
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -132,7 +132,8 @@ def get_raw_weather(city):
     min_temp = round(weather_data['main']['temp_min'])
     max_temp = round(weather_data['main']['temp_max'])
     wind_speed = weather_data['wind']['speed']
-    return current_temp, current_weather, min_temp, max_temp, wind_speed
+    values = jsonify(current_temp, current_weather, min_temp, max_temp, wind_speed)
+    return values
 
 
 # Display error page for invalid input
