@@ -88,6 +88,53 @@ def get_weather(city):
                            five_day_dates_list=five_day_dates_list)
 
 
+
+
+@app.route("/raw/<city>", methods=["GET", "POST"])
+def get_weather(city):
+    # Format city name and get current date to display on page
+    city_name = string.capwords(city)
+    today = datetime.datetime.now()
+    current_date = today.strftime("%A, %B %d")
+
+    # Get latitude and longitude for city
+    location_params = {
+        "q": city_name,
+        "appid": api_key,
+        "limit": 3,
+    }
+
+    location_response = requests.get(GEOCODING_API_ENDPOINT, params=location_params)
+    location_data = location_response.json()
+
+    # Prevent IndexError if user entered a city name with no coordinates by redirecting to error page
+    if not location_data:
+        return redirect(url_for("error"))
+    else:
+        print(location_data)
+        lat = location_data[0]['lat']
+        lon = location_data[0]['lon']
+
+    # Get OpenWeather API data
+    weather_params = {
+        "lat": lat,
+        "lon": lon,
+        "appid": api_key,
+        "units": "metric",
+    }
+    weather_response = requests.get(OWM_ENDPOINT, weather_params)
+    weather_response.raise_for_status()
+    weather_data = weather_response.json()
+
+    # Get current weather data
+    current_temp = round(weather_data['main']['temp'])
+    current_weather = weather_data['weather'][0]['main']
+    min_temp = round(weather_data['main']['temp_min'])
+    max_temp = round(weather_data['main']['temp_max'])
+    wind_speed = weather_data['wind']['speed']
+    return current_temp, current_weather, min_temp, max_temp, wind_speed
+
+
 # Display error page for invalid input
 @app.route("/error")
 def error():

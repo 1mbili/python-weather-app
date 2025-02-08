@@ -1,25 +1,27 @@
 import azure.functions as func
 import logging
-
+import datetime
+import requests
 app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
 
-@app.route(route="http_trigger")
-def http_trigger(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
+        
+@app.function_name(name="pogodynka")
+@app.timer_trigger(schedule="* * * * *", 
+              arg_name="mytimer",
+              run_on_startup=True) 
+def main(mytimer: func.TimerRequest) -> None:
+    utc_timestamp = datetime.datetime.utcnow().replace(
+        tzinfo=datetime.timezone.utc).isoformat()
 
-    name = req.params.get('name')
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
+    if mytimer.past_due:
+        logging.info('The timer is past due!')
 
-    if name:
-        return func.HttpResponse(f"Hello, {name}. This HTTP triggered function executed successfully.")
-    else:
-        return func.HttpResponse(
-             "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.",
-             status_code=200
-        )
+    logging.info('Python timer trigger function ran at %s', utc_timestamp)
+    
+    url = "https://demopogodowe-ftd4fvfecbe0bkfx.polandcentral-01.azurewebsites.net/raw/warsaw"
+    
+    try:
+        response = requests.post(url)
+        logging.info(f"POST request sent. Status Code: {response.status_code}, Response: {response.text}")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error sending POST request: {e}")
