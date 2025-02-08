@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-OWM_ENDPOINT = "https://api.openweathermap.org/data/2.5/weather"
+OWM_ENDPOINT = "http://api.openweathermap.org/data/2.5/weather?"
 OWM_FORECAST_ENDPOINT = "https://api.openweathermap.org/data/2.5/forecast"
 GEOCODING_API_ENDPOINT = "http://api.openweathermap.org/geo/1.0/direct"
 api_key = os.getenv("OWM_API_KEY")
@@ -46,6 +46,7 @@ def get_weather(city):
     if not location_data:
         return redirect(url_for("error"))
     else:
+        print(location_data)
         lat = location_data[0]['lat']
         lon = location_data[0]['lon']
 
